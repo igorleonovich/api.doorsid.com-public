@@ -1,0 +1,25 @@
+version: '3.7'
+
+x-shared_environment: &shared_environment
+  LOG_LEVEL: ${LOG_LEVEL:-debug}
+
+services:
+
+  dev.api.doorsid.com-nginx:
+      container_name: dev.api.doorsid.com-nginx
+      image: nginx
+      restart: always
+      volumes:
+        - "./default.conf:/etc/nginx/conf.d/default.conf"
+      environment:
+        - VIRTUAL_HOST=dev.api.doorsid.com
+        - VIRTUAL_PORT=80
+        - LETSENCRYPT_HOST=dev.api.doorsid.com
+        - LETSENCRYPT_EMAIL=mail@doorsid.com
+      expose:
+        - 80
+
+networks:
+  default:
+    external:
+      name: nginx-proxy

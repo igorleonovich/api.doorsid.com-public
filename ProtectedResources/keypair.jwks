@@ -1,0 +1,18 @@
+{
+    "keys": [
+        {
+            "p": "xxx",
+            "kty": "RSA",
+            "q": "xxx",
+            "d": "xxx",
+            "e": "xxx",
+            "use": "xxx",
+            "kid": "xxx",
+            "qi": "xxx",
+            "dp": "xxx",
+            "alg": "RS256",
+            "dq": "xxx",
+            "n": "xxx"
+        }
+    ]
+}

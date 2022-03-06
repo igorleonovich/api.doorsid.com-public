@@ -1,0 +1,73 @@
+version: '3.7'
+
+x-shared_environment: &shared_environment
+  LOG_LEVEL: ${LOG_LEVEL:-debug}
+
+services:
+
+  db-stage:
+    image: postgres
+    container_name: db-${DEPLOYMENT_ENVIRONMENT_SHORT}
+    volumes:
+      - "./db_data-${DEPLOYMENT_ENVIRONMENT_SHORT}:/var/lib/postgresql/data/pgdata"
+    restart: always
+    environment:
+      PGDATA: /var/lib/postgresql/data/pgdata
+      POSTGRES_DB: ${DATABASE_NAME}
+      POSTGRES_USER: ${DATABASE_USERNAME}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+    ports:
+      - ${DATABASE_PORT}:${DEFAULT_DATABASE_PORT}
+
+  redis-stage:
+    image: bitnami/redis:5.0
+    container_name: redis-${DEPLOYMENT_ENVIRONMENT_SHORT}
+    restart: always
+    environment:
+      # ALLOW_EMPTY_PASSWORD is recommended only for development.
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_DISABLE_COMMANDS: FLUSHDB,FLUSHALL
+    ports:
+      - ${REDIS_PORT}:${DEFAULT_REDIS_PORT}
+
+  api.doorsid.com-app-stage:
+    image: api.doorsid.com:latest
+    container_name: api.doorsid.com-app-${DEPLOYMENT_ENVIRONMENT_SHORT}
+    restart: always
+    volumes:
+      - "./.env:/app/.env"
+      - "./.env.${DEPLOYMENT_ENVIRONMENT}:/app/.env.production"
+    build:
+      context: .
+    environment:
+      <<: *shared_environment
+    depends_on:
+      - db-${DEPLOYMENT_ENVIRONMENT_SHORT}
+    ports:
+      - ${APP_PORT}:${APP_PORT}
+    # user: '0' # uncomment to run as root for testing purposes even though Dockerfile defines 'vapor' user.
+    command: ["serve", "--env", "production", "--hostname", "0.0.0.0", "--port", "${APP_PORT}"]
+
+  # api.doorsid.com-migrate:
+  #   image: api.doorsid.com:latest
+  #   build:
+  #     context: .
+  #   environment:
+  #     <<: *shared_environment
+  #   depends_on:
+  #     - db
+  #   command: ["migrate", "--yes"]
+  #   deploy:
+  #     replicas: 0
+  #
+  # api.doorsid.com-revert:
+  #   image: api.doorsid.com:latest
+  #   build:
+  #     context: .
+  #   environment:
+  #     <<: *shared_environment
+  #   depends_on:
+  #     - db
+  #   command: ["migrate", "--revert", "--yes"]
+  #   deploy:
+  #     replicas: 0

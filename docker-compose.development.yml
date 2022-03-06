@@ -1,0 +1,45 @@
+version: '3.7'
+
+services:
+
+  db-${DEPLOYMENT_ENVIRONMENT_SHORT}:
+    image: postgres
+    container_name: db-${DEPLOYMENT_ENVIRONMENT_SHORT}
+    volumes:
+      - "./db_data-${DEPLOYMENT_ENVIRONMENT_SHORT}:/var/lib/postgresql/data/pgdata"
+    restart: always
+    environment:
+      PGDATA: /var/lib/postgresql/data/pgdata
+      POSTGRES_DB: ${DATABASE_NAME}
+      POSTGRES_USER: ${DATABASE_USERNAME}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+    ports:
+      - ${DATABASE_PORT}:${DEFAULT_DATABASE_PORT}
+
+  redis-${DEPLOYMENT_ENVIRONMENT_SHORT}:
+    image: bitnami/redis:5.0
+    container_name: redis-${DEPLOYMENT_ENVIRONMENT_SHORT}
+    restart: always
+    environment:
+      # ALLOW_EMPTY_PASSWORD is recommended only for development.
+      # ALLOW_EMPTY_PASSWORD: 1
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_DISABLE_COMMANDS: FLUSHDB,FLUSHALL
+    ports:
+      - ${REDIS_PORT}:${DEFAULT_REDIS_PORT}
+
+  # db-test:
+  #   image: postgres
+  #   restart: always
+  #   environment:
+  #     POSTGRES_DB: doors_database-test
+  #     POSTGRES_USER: username
+  #     POSTGRES_PASSWORD: password
+  #   ports:
+  #     - 5433:5432
+
+  # adminer:
+  #   image: adminer
+  #   restart: always
+  #   ports:
+  #     - 8100:8080
